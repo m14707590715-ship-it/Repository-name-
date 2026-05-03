@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarketSense — 多 Agent 协作市场情报系统</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --border: #1e1e2e;
+    --text: #e0e0e8;
+    --muted: #8888a0;
+    --accent: #6c5ce7;
+    --accent2: #00cec9;
+    --danger: #ff6b6b;
+    --warn: #fdcb6e;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(108,92,231,0.12) 0%, transparent 60%);
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 880px; }
+  .badge {
+    display: inline-block;
+    padding: 4px 16px;
+    border: 1px solid var(--accent);
+    border-radius: 20px;
+    color: var(--accent);
+    font-size: .85rem;
+    letter-spacing: .05em;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 {
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 800;
+    letter-spacing: -.02em;
+    margin-bottom: 1rem;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero .subtitle {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 600px;
+    margin: 0 auto 2rem;
+  }
+  .stats-row {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent2);
+  }
+  .stat-label { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── Sections ── */
+  section {
+    max-width: 1020px;
+    margin: 0 auto;
+    padding: 5rem 1.5rem;
+  }
+  .section-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: .5rem;
+  }
+  .section-sub {
+    color: var(--muted);
+    margin-bottom: 2.5rem;
+    font-size: .95rem;
+  }
+
+  /* ── Pain Point ── */
+  .pain-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .pain-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+  .pain-card h4 { font-size: 1rem; margin-bottom: .4rem; }
+  .pain-card p  { font-size: .85rem; color: var(--muted); }
+
+  /* ── Architecture ── */
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: 3rem;
+  }
+  .arch-node {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: .7rem 1.2rem;
+    font-size: .85rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .arch-arrow {
+    color: var(--accent);
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  .agent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+  }
+  .agent-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    position: relative;
+  }
+  .agent-card .icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    margin-bottom: .8rem;
+  }
+  .agent-card h4 { margin-bottom: .4rem; }
+  .agent-card p  { font-size: .82rem; color: var(--muted); }
+  .icon-crawl  { background: rgba(108,92,231,.2); color: var(--accent); }
+  .icon-clean  { background: rgba(0,206,201,.2); color: var(--accent2); }
+  .icon-analyze{ background: rgba(253,203,110,.2); color: var(--warn); }
+  .icon-alert  { background: rgba(255,107,107,.2); color: var(--danger); }
+
+  /* ── Debate ── */
+  .debate-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    text-align: center;
+  }
+  .debate-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .debate-agent {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: .8rem 1.4rem;
+    font-weight: 600;
+    font-size: .9rem;
+  }
+  .debate-agent.opt { border-color: var(--accent2); color: var(--accent2); }
+  .debate-agent.pes { border-color: var(--danger);  color: var(--danger); }
+  .debate-agent.arb { border-color: var(--warn);   color: var(--warn); }
+  .debate-vs { font-size: 1.1rem; font-weight: 800; color: var(--muted); }
+
+  /* ── Tech Specs ── */
+  .spec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  .spec-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .spec-card .val {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .spec-card .lbl { font-size: .78rem; color: var(--muted); margin-top: 4px; }
+
+  /* ── Impact ── */
+  .impact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .impact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    text-align: center;
+  }
+  .impact-card .arrow {
+    font-size: 1.8rem;
+    margin-bottom: .3rem;
+  }
+  .impact-card .from { color: var(--muted); font-size: .85rem; }
+  .impact-card .to   { color: var(--accent2); font-size: 1.3rem; font-weight: 700; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--muted);
+    font-size: .8rem;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 640px) {
+    .arch-flow { flex-direction: column; }
+    .arch-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="badge">Multi-Agent • LangGraph • Private LLM</div>
+    <h1>MarketSense <span>市场情报系统</span></h1>
+    <p class="subtitle">
+      基于多 Agent 协作的自主式市场信息抓取分析智能体 —— 从"人找信息"到"信息带着判断来找人"。
+    </p>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num">12 万</div><div class="stat-label">日均处理信息条数</div></div>
+      <div class="stat"><div class="stat-num">180 万</div><div class="stat-label">日均 Token 消耗</div></div>
+      <div class="stat"><div class="stat-num">4</div><div class="stat-label">核心 Agent 协作</div></div>
+      <div class="stat"><div class="stat-num">90%</div><div class="stat-label">风险识别提速</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 痛点 ═══════════════ -->
+<section>
+  <h2 class="section-title">解决的核心痛点</h2>
+  <p class="section-sub">即使拥有大量数据源，分析师依然耗费 70% 以上的时间在机械性搜集与整理上，而非真正的洞察。</p>
+  <div class="pain-cards">
+    <div class="pain-card">
+      <h4>信息碎片化</h4>
+      <p>新闻、社交媒体、财报、研报分散于数十个平台，人工切换效率极低，关键信息极易遗漏。</p>
+    </div>
+    <div class="pain-card">
+      <h4>分析浅层化</h4>
+      <p>缺乏长链推理与跨源关联能力，单条信息易被误读，弱信号难以捕捉，深层风险被淹没在噪音中。</p>
+    </div>
+    <div class="pain-card">
+      <h4>预警滞后</h4>
+      <p>传统日报/周报模式以天为单位，等报告到达决策层时，市场窗口早已关闭。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 架构 ═══════════════ -->
+<section>
+  <h2 class="section-title">系统架构</h2>
+  <p class="section-sub">分层多 Agent 架构，基于 LangGraph 编排复杂逻辑流，实现"感知—理解—推理—行动"全闭环。</p>
+
+  <!-- 数据流 -->
+  <div class="arch-flow">
+    <div class="arch-node">异构数据源</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">Kafka 管道</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">清洗 &amp; 对齐</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">分析引擎</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">预警 &amp; 推送</div>
+  </div>
+
+  <!-- 四大 Agent -->
+  <div class="agent-grid">
+    <div class="agent-card">
+      <div class="icon icon-crawl">🕷</div>
+      <h4>抓取 Agent</h4>
+      <p>基于 Playwright 与亮数据代理池，自主解析目标页面并应对反爬。新闻、社交媒体、财报、研报等异构数据实时注入 Kafka 管道。</p>
+    </div>
+    <div class="agent-card">
+      <div class="icon icon-clean">🧹</div>
+      <h4>清洗 Agent</h4>
+      <p>结构化抽取模型将非结构化文本转为统一 Schema，完成去重与实体对齐，确保下游分析的数据质量。</p>
+    </div>
+    <div class="agent-card">
+      <div class="icon icon-analyze">🧠</div>
+      <h4>分析 Agent（核心）</h4>
+      <p>思维链引擎：调用行业知识图谱与 RAG 检索补充背景，通过"假设—验证—修正"多轮推理进行舆情情感、竞争态势、供应链风险深度解析，识别弱信号关联。</p>
+    </div>
+    <div class="agent-card">
+      <div class="icon icon-alert">🚨</div>
+      <h4>汇总与预警 Agent</h4>
+      <p>多维度发现整合为带置信度评分的结构化报告，通过企业微信自动推送；触发阈值时直接生成行动建议。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 辩论机制 ═══════════════ -->
+<section>
+  <h2 class="section-title">多 Agent 辩论机制</h2>
+  <p class="section-sub">对抗式协作显著减少单一模型幻觉带来的误判，提升分析可靠性。</p>
+
+  <div class="debate-box">
+    <div class="debate-row">
+      <div class="debate-agent opt">🔵 乐观视角 Agent</div>
+      <div class="debate-vs">VS</div>
+      <div class="debate-agent pes">🔴 悲观视角 Agent</div>
+    </div>
+    <div style="color:var(--muted); font-size:.85rem;">两个独立配置的分析子 Agent 分别从乐观与悲观视角撰写简报</div>
+    <div class="debate-row" style="margin-top:.5rem;">
+      <div class="debate-agent arb">🟡 仲裁 Agent — 综合生成最终评估</div>
+    </div>
+    <p style="font-size:.8rem; color:var(--muted); margin-top:.8rem;">
+      这种"红蓝对抗 + 仲裁"的设计，让 AI 在内部自行辩论与证伪，而非盲信单一判断。
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════ 技术指标 ═══════════════ -->
+<section>
+  <h2 class="section-title">技术指标</h2>
+  <div class="spec-grid">
+    <div class="spec-card">
+      <div class="val">LangGraph</div>
+      <div class="lbl">编排框架</div>
+    </div>
+    <div class="spec-card">
+      <div class="val">Playwright</div>
+      <div class="lbl">动态抓取引擎</div>
+    </div>
+    <div class="spec-card">
+      <div class="val">Kafka</div>
+      <div class="lbl">实时数据管道</div>
+    </div>
+    <div class="spec-card">
+      <div class="val">RAG + 知识图谱</div>
+      <div class="lbl">背景增强检索</div>
+    </div>
+    <div class="spec-card">
+      <div class="val">私有化大模型</div>
+      <div class="lbl">数据安全保障</div>
+    </div>
+    <div class="spec-card">
+      <div class="val">企业微信</div>
+      <div class="lbl">自动推送通道</div>
+    </div>
+    <div class="spec-card">
+      <div class="val">120K / 天</div>
+      <div class="lbl">多语种信息处理量</div>
+    </div>
+    <div class="spec-card">
+      <div class="val">1.8M / 天</div>
+      <div class="lbl">Token 消耗</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 落地效果 ═══════════════ -->
+<section>
+  <h2 class="section-title">落地效果</h2>
+  <p class="section-sub">从 3 天到 4 小时，让市场情报真正实现实时驱动决策。</p>
+  <div class="impact-grid">
+    <div class="impact-card">
+      <div class="arrow">⏱</div>
+      <div class="from">市场周报产出时间</div>
+      <div class="to">3 天 → 4 小时</div>
+    </div>
+    <div class="impact-card">
+      <div class="arrow">⚡</div>
+      <div class="from">关键风险识别速度</div>
+      <div class="to">提升 90%</div>
+    </div>
+    <div class="impact-card">
+      <div class="arrow">🎯</div>
+      <div class="from">分析师精力释放</div>
+      <div class="to">从搜集转向洞察</div>
+    </div>
+    <div class="impact-card">
+      <div class="arrow">🔒</div>
+      <div class="from">数据安全</div>
+      <div class="to">全链路私有化部署</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  MarketSense · 基于多 Agent 协作的市场情报系统 · 私有化部署<br>
+  Built with LangGraph · Playwright · Kafka · Private LLM
+</footer>
+
+</body>
+</html>
